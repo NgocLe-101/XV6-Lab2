@@ -1,3 +1,6 @@
+#ifndef PROC_H
+#define PROC_H
+
 // Saved registers for kernel context switches.
 struct context {
   uint64 ra;
@@ -107,3 +110,9 @@ struct proc {
 
   int trace_mask;
 };
+
+
+uint64 get_nproc(void);
+
+
+#endif // PROC_H

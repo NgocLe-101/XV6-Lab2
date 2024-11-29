@@ -5,6 +5,10 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "sysinfo.h"
+#include "syscall.h"
+#include "kalloc.h"
+
 
 uint64
 sys_exit(void)
@@ -91,6 +95,58 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+
+// // sysinfotest
+// int sys_sysinfo(void) {
+//   printf("syscall sysinfo called\n");
+//   struct sysinfo info;
+//   struct sysinfo *u_info;
+
+//   // lay tham so tu user space
+//   if (argstr(0, (char* )&u_info, sizeof(*u_info))<0)
+//     return -1;
+
+//   // lay thong tin he thong
+//   info.freemem = get_freemem();
+//   info.nproc = get_nproc();
+
+//   // copy ket qua tra ve user space
+//   if(copyout(myproc()->pagetable, (uint64)u_info, (char *)&info, sizeof(info))<0)
+//     return -1;
+
+//   return 0;
+
+// }
+uint64
+sys_sysinfo(void) {
+    struct sysinfo info;
+
+    // Lấy thông tin
+    info.freemem = get_freemem();
+    info.nproc = get_nproc();
+
+    uint64 dst;
+    argaddr(0, &dst); 
+
+    if (dst == 0) {
+        //printf("error:  null pointer\n");
+        return -1;
+    }
+
+    // Sao chép dữ liệu từ kernel sang user space
+    if (copyout(myproc()->pagetable, dst, (char *)&info, sizeof(info)) < 0) {
+        //printf("error: failed to copyout\n");
+        return -1;
+    }
+
+    //printf("freemem: %ld\n", info.freemem);
+    //printf("nproc: %ld\n", info.nproc);
+
+    return 0;
+}
+
+
 
 uint64
 sys_trace(void)
