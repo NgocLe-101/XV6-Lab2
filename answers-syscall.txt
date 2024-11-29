@@ -1,0 +1,25 @@
+1. Looking at the backtrace output, which function called syscall?
+--> Trong bactrace output, syscall được gọi bởi usertrap.
+2. What is the value of p->trapframe->a7 and what does that value represent?
+--> Chạy lệnh (gdb) p p->trapframe->a7 trả về giá trị $2 = 7.
+--> Đọc trong file user/initcode.S, ta thấy "li a7, SYS_exec" cho ta biết rằng number syscall được lưu trong thanh ghi a7.
+3. What was the previous mode that the CPU was in?
+--> Chạy lệnh (gdb) p/x $sstatus cho ta thấy giá trị của thanh ghi sstatus. Bit SPP (Supervisor Previous Privilege) trong sstatus xác định chế độ trước đó:
+ + 0: Chế độ người dùng (User mode)
+ + 1: Chế độ giám sát (Supervisor mode)
+4. Write down the assembly instruction the kernel is panicing at. Which register corresponds to the variable num?
+- Kernel gặp panic do lỗi phân trang --> Thanh ghi specs (Stored Program Counter) được in ra để chứa địa chỉ của lệnh gây lỗi.
+- Mở file kernel/kernel.asm, ta thấy: 
+num = *(int *)0;
+80001c82:	00002683          	lw	a3,0(zero) # 0 <_entry-0x80000000>
+--> Ta kết luận được rằng lệnh lỗi là lw a3,0(zero)
+5. Why does the kernel crash? Hint: look at figure 3-3 in the text; is address 0 mapped in the kernel address space? Is that confirmed by the value in scause above? (See description of scause in RISC-V privileged instructions) 
+- Khi ta thay đổi num = p->trapframe->a7 sang num = *(int *)0
+--> Dẫn đến lỗi trỏ đến 0x0 (Vì địa chỉ 0x0 không được ánh xạ trong không gian bộ nhớ của kernel).
+- Kiểm tra lỗi Kernel bị crash bằng việc kiểm tra giá trị của sepc và scause:
+ + sepc: Địa chỉ của lệnh đã gây ra lỗi
+ + scause: Mã lỗi chỉ ra nguyên nhân gây ra lỗi
+6. What is the name of the binary that was running when the kernel paniced? What is its process id (pid)?
+- Để xem tên của chương trình đang chạy khi kernel panicked --> p p->name
+--> Ta thấy được tên chương trình là: initcode
+- pid của initcode là 1
