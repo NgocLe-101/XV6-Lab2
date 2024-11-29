@@ -693,3 +693,18 @@ procdump(void)
     printf("\n");
   }
 }
+
+
+// sysinfotest
+uint64 get_nproc() {
+  //printf("proc called\n");
+  struct proc *p;
+  uint64 count = 0;
+
+  for (p = proc; p < &proc[NPROC]; p++){
+    if(p->state != UNUSED)
+      count++;
+  }
+
+  return count;
+}
